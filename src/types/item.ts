@@ -2,32 +2,45 @@
  * Exam Item Types
  */
 
-export interface ExamItem {
+type DifficultyLevel = 1 | 2 | 3 | 4 | 5
+type QuestionType = 'multiple-choice' | 'free-response' | 'essay'
+type SecurityLevel = 'standard' | 'secure' | 'highly-secure'
+type ItemStatus = 'draft' | 'review' | 'approved' | 'archived'
+/** Unix timestamp in milliseconds */
+type Timestamp = number
+
+export interface ExamItem<T extends QuestionType = QuestionType> {
   id: string
   subject: string // e.g., "AP Biology", "AP Calculus"
-  itemType: string // "multiple-choice", "free-response", "essay"
-  difficulty: number // 1-5
-  content: {
-    question: string
-    options?: string[] // For multiple choice
-    correctAnswer: string
-    explanation: string
-  }
+  itemType: T
+  difficulty: DifficultyLevel
+  content: T extends 'multiple-choice'
+    ? {
+        question: string
+        options: string[]
+        correctAnswer: string
+        explanation: string
+      }
+    : {
+        question: string
+        correctAnswer: string
+        explanation: string
+      }
   metadata: {
     author: string
-    created: number // timestamp
-    lastModified: number // timestamp
+    created: Timestamp
+    lastModified: Timestamp
     version: number
-    status: string // "draft", "review", "approved", "archived"
+    status: ItemStatus
     tags: string[]
   }
-  securityLevel: string // "standard", "secure", "highly-secure"
+  securityLevel: SecurityLevel
 }
 
 export interface CreateItemRequest {
   subject: string
-  itemType: string
-  difficulty: number
+  itemType: QuestionType
+  difficulty: DifficultyLevel
   content: {
     question: string
     options?: string[]
@@ -36,24 +49,24 @@ export interface CreateItemRequest {
   }
   metadata: {
     author: string
-    status: string
+    status: ItemStatus
     tags: string[]
   }
-  securityLevel: string
+  securityLevel: SecurityLevel
 }
 
 export interface UpdateItemRequest {
   subject?: string
-  itemType?: string
-  difficulty?: number
+  itemType?: QuestionType
+  difficulty?: DifficultyLevel
   content?: Partial<ExamItem['content']>
   metadata?: Partial<ExamItem['metadata']>
-  securityLevel?: string
+  securityLevel?: SecurityLevel
 }
 
 export interface ListItemsQuery {
   limit?: number
   offset?: number
   subject?: string
-  status?: string
+  status?: ItemStatus
 }
