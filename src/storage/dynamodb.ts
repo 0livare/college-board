@@ -29,8 +29,9 @@ import {
   CreateItemRequest,
   UpdateItemRequest,
   ListItemsQuery,
-} from '../types/item.js'
+} from '../types/exam-item-types.js'
 import { ItemStorage } from './interface.js'
+import { type ExamItemId, genId } from '../helpers/id.js'
 
 export class DynamoDBStorage implements ItemStorage {
   private client: DynamoDBDocumentClient
@@ -51,7 +52,7 @@ export class DynamoDBStorage implements ItemStorage {
   async createItem(data: CreateItemRequest): Promise<ExamItem> {
     const now = Date.now()
     const item: ExamItem = {
-      id: randomUUID(),
+      id: genId('examItem'),
       ...data,
       metadata: {
         ...data.metadata,
@@ -71,7 +72,7 @@ export class DynamoDBStorage implements ItemStorage {
     return item
   }
 
-  async getItem(id: string): Promise<ExamItem | null> {
+  async getItem(id: ExamItemId): Promise<ExamItem | null> {
     const result = await this.client.send(
       new GetCommand({
         TableName: this.tableName,
@@ -83,7 +84,7 @@ export class DynamoDBStorage implements ItemStorage {
   }
 
   async updateItem(
-    id: string,
+    id: ExamItemId,
     data: UpdateItemRequest,
   ): Promise<ExamItem | null> {
     const existing = await this.getItem(id)
@@ -129,13 +130,13 @@ export class DynamoDBStorage implements ItemStorage {
     return { items, total: result.Count || 0 }
   }
 
-  async createVersion(id: string): Promise<ExamItem | null> {
+  async createVersion(id: ExamItemId): Promise<ExamItem | null> {
     // TODO: Implement versioning strategy
     // Options: Separate versions table, same table with sort key, etc.
     throw new Error('Not implemented - define your versioning strategy')
   }
 
-  async getAuditTrail(id: string): Promise<ExamItem[]> {
+  async getAuditTrail(id: ExamItemId): Promise<ExamItem[]> {
     // TODO: Implement audit trail retrieval
     // This depends on your versioning strategy
     throw new Error('Not implemented - define your audit trail strategy')

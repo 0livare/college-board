@@ -5,11 +5,13 @@
  * You can use this as a template for implementing the required endpoints.
  */
 
+import type { ExamItemId } from '../helpers/id.js'
 import { createStorage } from '../storage/index.js'
+import { CreateItemRequest } from '../types/exam-item-types.js'
 
 const storage = createStorage()
 
-export async function getItemHandler(id: string) {
+export async function getItemHandler(id: ExamItemId) {
   try {
     const item = await storage.getItem(id)
 
@@ -33,7 +35,7 @@ export async function getItemHandler(id: string) {
   }
 }
 
-export async function createItemHandler(data: any) {
+export async function createItemHandler(data: CreateItemRequest) {
   try {
     // TODO: Add validation using Zod
     const item = await storage.createItem(data)

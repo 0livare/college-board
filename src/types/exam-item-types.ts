@@ -1,31 +1,31 @@
-/**
- * Exam Item Types
- */
+import type { ExamItemId } from '../helpers/id'
+
+/** Unix timestamp in milliseconds */
+type Timestamp = number
 
 type DifficultyLevel = 1 | 2 | 3 | 4 | 5
 type QuestionType = 'multiple-choice' | 'free-response' | 'essay'
 type SecurityLevel = 'standard' | 'secure' | 'highly-secure'
 type ItemStatus = 'draft' | 'review' | 'approved' | 'archived'
-/** Unix timestamp in milliseconds */
-type Timestamp = number
+type QuestionContent<T extends QuestionType> = T extends 'multiple-choice'
+  ? {
+      question: string
+      options: string[]
+      correctAnswer: string
+      explanation: string
+    }
+  : {
+      question: string
+      correctAnswer: string
+      explanation: string
+    }
 
 export interface ExamItem<T extends QuestionType = QuestionType> {
-  id: string
+  id: ExamItemId
   subject: string // e.g., "AP Biology", "AP Calculus"
   itemType: T
   difficulty: DifficultyLevel
-  content: T extends 'multiple-choice'
-    ? {
-        question: string
-        options: string[]
-        correctAnswer: string
-        explanation: string
-      }
-    : {
-        question: string
-        correctAnswer: string
-        explanation: string
-      }
+  content: QuestionContent<T>
   metadata: {
     author: string
     created: Timestamp
@@ -37,29 +37,22 @@ export interface ExamItem<T extends QuestionType = QuestionType> {
   securityLevel: SecurityLevel
 }
 
-export interface CreateItemRequest {
-  subject: string
-  itemType: QuestionType
-  difficulty: DifficultyLevel
-  content: {
-    question: string
-    options?: string[]
-    correctAnswer: string
-    explanation: string
-  }
+export type CreateItemRequest<T extends QuestionType = QuestionType> = Omit<
+  ExamItem<T>,
+  'id' | 'metadata'
+> & {
   metadata: {
     author: string
     status: ItemStatus
     tags: string[]
   }
-  securityLevel: SecurityLevel
 }
 
-export interface UpdateItemRequest {
+export interface UpdateItemRequest<T extends QuestionType = QuestionType> {
   subject?: string
-  itemType?: QuestionType
+  itemType?: T
   difficulty?: DifficultyLevel
-  content?: Partial<ExamItem['content']>
+  content?: Partial<QuestionContent<T>>
   metadata?: Partial<ExamItem['metadata']>
   securityLevel?: SecurityLevel
 }

@@ -14,9 +14,9 @@ importers:
       '@aws-sdk/lib-dynamodb':
         specifier: ^3.600.0
         version: 3.932.0(@aws-sdk/client-dynamodb@3.932.0)
-      prettier:
-        specifier: ^3.8.1
-        version: 3.8.1
+      typeid-js:
+        specifier: ^1.2.0
+        version: 1.2.0
       uuid:
         specifier: ^10.0.0
         version: 10.0.0
@@ -30,6 +30,9 @@ importers:
       '@vitest/ui':
         specifier: ^2.1.8
         version: 2.1.9(vitest@2.1.9)
+      prettier:
+        specifier: ^3.8.1
+        version: 3.8.1
       tsx:
         specifier: ^4.15.7
         version: 4.20.6
@@ -999,6 +1002,9 @@ packages:
     resolution: {integrity: sha512-ytQKuwgmrrkDTFP4LjR0ToE2nqgy886GpvRSpU0JAnrdBYppuY5rLkRUYPU1yCryb24SsKBTL/hlDQAEFVwtZg==}
     engines: {node: '>=18.0.0'}
     hasBin: true
+
+  typeid-js@1.2.0:
+    resolution: {integrity: sha512-t76ZucAnvGC60ea/HjVsB0TSoB0cw9yjnfurUgtInXQWUI/VcrlZGpO23KN3iSe8yOGUgb1zr7W7uEzJ3hSljA==}
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -2230,6 +2236,10 @@ snapshots:
       get-tsconfig: 4.13.0
     optionalDependencies:
       fsevents: 2.3.3
+
+  typeid-js@1.2.0:
+    dependencies:
+      uuid: 10.0.0
 
   typescript@5.9.3: {}
 

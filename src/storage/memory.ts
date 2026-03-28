@@ -5,23 +5,23 @@
  * Data is lost when the server restarts.
  */
 
-import { randomUUID } from 'crypto'
 import {
   ExamItem,
   CreateItemRequest,
   UpdateItemRequest,
   ListItemsQuery,
-} from '../types/item.js'
+} from '../types/exam-item-types.js'
 import { ItemStorage } from './interface.js'
+import { genId, ExamItemId } from '../helpers/id.js'
 
 export class MemoryStorage implements ItemStorage {
-  private items: Map<string, ExamItem> = new Map()
-  private versions: Map<string, ExamItem[]> = new Map()
+  private items: Map<ExamItemId, ExamItem> = new Map()
+  private versions: Map<ExamItemId, ExamItem[]> = new Map()
 
   async createItem(data: CreateItemRequest): Promise<ExamItem> {
     const now = Date.now()
     const item: ExamItem = {
-      id: randomUUID(),
+      id: genId('examItem'),
       ...data,
       metadata: {
         ...data.metadata,
@@ -37,12 +37,12 @@ export class MemoryStorage implements ItemStorage {
     return item
   }
 
-  async getItem(id: string): Promise<ExamItem | null> {
+  async getItem(id: ExamItemId): Promise<ExamItem | null> {
     return this.items.get(id) || null
   }
 
   async updateItem(
-    id: string,
+    id: ExamItemId,
     data: UpdateItemRequest,
   ): Promise<ExamItem | null> {
     const item = this.items.get(id)
@@ -97,7 +97,7 @@ export class MemoryStorage implements ItemStorage {
     return { items, total }
   }
 
-  async createVersion(id: string): Promise<ExamItem | null> {
+  async createVersion(id: ExamItemId): Promise<ExamItem | null> {
     const item = this.items.get(id)
     if (!item) return null
 
@@ -120,7 +120,7 @@ export class MemoryStorage implements ItemStorage {
     return newVersion
   }
 
-  async getAuditTrail(id: string): Promise<ExamItem[]> {
+  async getAuditTrail(id: ExamItemId): Promise<ExamItem[]> {
     return this.versions.get(id) || []
   }
 }
