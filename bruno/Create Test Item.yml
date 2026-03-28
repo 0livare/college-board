@@ -1,0 +1,48 @@
+info:
+  name: Create Test Item
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{appUrl}}/api/items"
+  body:
+    type: json
+    data: |-
+      {
+        "subject": "AP Biology",
+        "itemType": "multiple-choice",
+        "difficulty": 3,
+        "content": {
+          "question": "What is photosynthesis?",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "correctAnswer": "A",
+          "explanation": "Photosynthesis is..."
+        },
+        "metadata": {
+          "author": "test-author",
+          "status": "draft",
+          "tags": [
+            "biology",
+            "photosynthesis"
+          ]
+        },
+        "securityLevel": "standard"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: bru.setVar("testItemId", res.body.id);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

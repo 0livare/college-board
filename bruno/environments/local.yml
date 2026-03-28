@@ -1,0 +1,4 @@
+name: local
+variables:
+  - name: appUrl
+    value: http://localhost:3000
