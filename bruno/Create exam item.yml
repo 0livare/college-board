@@ -1,5 +1,5 @@
 info:
-  name: Create Test Item
+  name: Create exam item
   type: http
   seq: 1
 
@@ -41,7 +41,7 @@ runtime:
     - type: after-response
       code: |-
         if (res.body.type === 'Success') {
-          bru.setVar("testItemId", res.body.value.id);
+          bru.setVar("examItemId", res.body.value.id);
         }
 
 settings:

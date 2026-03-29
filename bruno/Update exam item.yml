@@ -1,0 +1,15 @@
+info:
+  name: Update exam item
+  type: http
+  seq: 6
+
+http:
+  method: PATCH
+  url: "{{appUrl}}/api/items/{{examItemId}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

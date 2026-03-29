@@ -7,6 +7,6 @@ const storage = createStorage()
 export async function listItemsHandler(): Promise<LambdaResult> {
   return {
     statusCode: 500,
-    body: Result.fail('Not implemented'),
+    body: Result.fail('listItemsHandler is not implemented'),
   }
 }
