@@ -41,11 +41,13 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
 
     // Example routes - implement your own routing logic
     if (method === 'GET' && url === '/api/items/test') {
+      // @ts-expect-error
       result = await getItemHandler('test')
     } else if (method === 'POST' && url === '/api/items') {
       result = await createItemHandler(parsedBody)
     } else if (method === 'GET' && url?.startsWith('/api/items/')) {
       const id = url.split('/').pop()
+      // @ts-expect-error
       result = await getItemHandler(id!)
     } else {
       result = {

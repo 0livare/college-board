@@ -12,15 +12,17 @@
 
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createItemHandler, getItemHandler } from '../handlers/example.js'
+import { ExamItemId } from '../helpers/id.js'
+import { CreateItemRequest, ExamItem } from '../types/exam-item-schemas.js'
 
 describe('Example Handlers', () => {
   describe('createItemHandler', () => {
     it('should create an item successfully', async () => {
-      const itemData = {
+      const itemData: CreateItemRequest = {
         subject: 'AP Biology',
-        itemType: 'multiple-choice',
         difficulty: 3,
         content: {
+          type: 'multiple-choice',
           question: 'What is photosynthesis?',
           options: ['A', 'B', 'C', 'D'],
           correctAnswer: 'A',
@@ -49,7 +51,7 @@ describe('Example Handlers', () => {
 
   describe('getItemHandler', () => {
     it('should return 404 for non-existent item', async () => {
-      const result = await getItemHandler('non-existent-id')
+      const result = await getItemHandler('q_non-existent-id' as ExamItemId)
 
       expect(result.statusCode).toBe(404)
       expect(result.body).toHaveProperty('error')
@@ -60,11 +62,11 @@ describe('Example Handlers', () => {
 
     it('should retrieve an existing item', async () => {
       // First create an item
-      const itemData = {
+      const itemData: CreateItemRequest = {
         subject: 'AP Calculus',
-        itemType: 'free-response',
         difficulty: 4,
         content: {
+          type: 'free-response',
           question: 'Calculate the derivative...',
           correctAnswer: '42',
           explanation: 'Using the chain rule...',
