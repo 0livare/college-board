@@ -10,7 +10,7 @@ import {
   CreateItemRequest,
   UpdateItemRequest,
   ListItemsQuery,
-} from '../types/exam-item-types.js'
+} from '../types/exam-item-schemas.js'
 
 export interface ItemStorage {
   createItem(data: CreateItemRequest): Promise<ExamItem>

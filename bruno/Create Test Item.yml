@@ -10,26 +10,26 @@ http:
     type: json
     data: |-
       {
-        "subject": "AP Biology2",
-        "itemType": "multiple-choice",
-        "difficulty": 3,
+        "subject": "AP European History",
+        "difficulty": 1,
         "content": {
-          "question": "What is photosynthesis?",
+          "type": "multiple-choice",
+          "question": "Who wrote 'The Prince' in 1532?",
           "options": [
-            "A",
-            "B",
-            "C",
-            "D"
+            "Niccolò Machiavelli",
+            "Napoleon Bonaparte",
+            "Leonardo da Vinci",
+            "Galileo Galilei"
           ],
-          "correctAnswer": "A",
-          "explanation": "Photosynthesis is..."
+          "correctAnswer": "Niccolò Machiavelli",
+          "explanation": "Machiavelli wrote 'The Prince' (Il Principe), published in 1532. It's a political treatise advising rulers on how to acquire and maintain power."
         },
         "metadata": {
           "author": "test-author",
           "status": "draft",
           "tags": [
-            "biology",
-            "photosynthesis"
+            "european-history",
+            "political-theory"
           ]
         },
         "securityLevel": "standard"
@@ -39,7 +39,10 @@ http:
 runtime:
   scripts:
     - type: after-response
-      code: bru.setVar("testItemId", res.body.id);
+      code: |-
+        if (res.body.type === 'Success') {
+          bru.setVar("testItemId", res.body.value.id);
+        }
 
 settings:
   encodeUrl: true
