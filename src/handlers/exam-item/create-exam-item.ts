@@ -1,17 +1,13 @@
 import { Result } from '@praha/byethrow'
-import { verifyZodSchema } from '../../helpers/verify-zod-schema.js'
+import { checkZodSchema } from '../../helpers/verify-zod-schema.js'
 import { createStorage } from '../../storage/index.js'
-import {
-  CreateItemRequest,
-  createItemSchema,
-  LambdaResult,
-} from '../../types/index.js'
+import { createItemSchema, LambdaResult } from '../../types/index.js'
 
 const storage = createStorage()
 
 export async function createItemHandler(data: unknown): Promise<LambdaResult> {
   try {
-    const result = verifyZodSchema(createItemSchema, data)
+    const result = checkZodSchema(createItemSchema, data)
     if (Result.isFailure(result)) return { statusCode: 400, body: result }
 
     const item = await storage.createItem(result.value)

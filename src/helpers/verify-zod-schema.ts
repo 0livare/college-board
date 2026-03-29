@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { Result } from '@praha/byethrow'
 
-export function verifyZodSchema<T>(schema: z.ZodType<T>, data: unknown) {
+export function checkZodSchema<T>(schema: z.ZodType<T>, data: unknown) {
   const parsed = schema.safeParse(data)
   return parsed.success
     ? Result.succeed(parsed.data)
