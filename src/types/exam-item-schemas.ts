@@ -79,7 +79,7 @@ export const createItemSchema = z.object({
 export type CreateItemRequest = z.infer<typeof createItemSchema>
 
 export const updateItemSchema = z.object({
-  ...createItemSchema.shape,
+  ...createItemSchema.partial().shape,
   content: questionContentSchema.optional(),
   metadata: createMetadataSchema.partial().optional(),
 })

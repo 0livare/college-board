@@ -25,9 +25,6 @@ export async function createItemHandler(
     }
   } catch (error) {
     console.error('Error creating item:', error)
-    return {
-      statusCode: 500,
-      body: Result.fail('Internal server error'),
-    }
+    throw error
   }
 }

@@ -6,6 +6,25 @@ info:
 http:
   method: PATCH
   url: "{{appUrl}}/api/items/{{examItemId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "difficulty": 4,
+        "content": {
+          "type": "multiple-choice",
+          "question": "Who wrote 'The Prince' in 1532?",
+          "options": [
+            "Zach Olivare",
+            "Niccolò Machiavelli",
+            "Napoleon Bonaparte",
+            "Leonardo da Vinci",
+            "Galileo Galilei"
+          ],
+          "correctAnswer": "Zach Olivare",
+          "explanation": "😈"
+        }
+      }
   auth: inherit
 
 settings:

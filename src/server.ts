@@ -28,25 +28,25 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
   req.on('data', (chunk) => (body += chunk))
   await new Promise((resolve) => req.on('end', resolve))
 
-  const parsedBody = body ? JSON.parse(body) : null
-
-  console.log(`${method} ${url}`)
-
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader(
-    'Access-Control-Allow-Methods',
-    'GET, POST, PUT, DELETE, OPTIONS',
-  )
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-
-  if (method === 'OPTIONS') {
-    res.writeHead(204)
-    res.end()
-    return
-  }
-
   try {
+    const parsedBody = body ? JSON.parse(body) : null
+
+    console.log(`${method} ${url}`)
+
+    // CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET, POST, PUT, DELETE, OPTIONS',
+    )
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+
+    if (method === 'OPTIONS') {
+      res.writeHead(204)
+      res.end()
+      return
+    }
+
     let result: LambdaResult = {
       statusCode: 404,
       body: Result.fail('Route not found'),
@@ -84,7 +84,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
   } catch (error) {
     console.error('Server error:', error)
     res.writeHead(500, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ error: 'Internal server error' }))
+    res.end(JSON.stringify(Result.fail('Internal server error')))
   }
 }
 

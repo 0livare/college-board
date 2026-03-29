@@ -1,7 +1,12 @@
 import { Result } from '@praha/byethrow'
 import { createStorage } from '../../storage/index.js'
-import { LambdaResult, UpdateItemRequest } from '../../types/index.js'
+import {
+  LambdaResult,
+  UpdateItemRequest,
+  updateItemSchema,
+} from '../../types/index.js'
 import { ExamItemId } from '../../helpers/id.js'
+import { verifyZodSchema } from '../../helpers/verify-zod-schema.js'
 
 const storage = createStorage()
 
@@ -9,8 +14,19 @@ export async function updateItemHandler(
   id: ExamItemId,
   data: UpdateItemRequest,
 ): Promise<LambdaResult> {
-  return {
-    statusCode: 500,
-    body: Result.fail('updateItemHandler is not implemented'),
+  try {
+    const result = verifyZodSchema(updateItemSchema, data)
+    if (Result.isFailure(result)) {
+      return { statusCode: 400, body: result }
+    }
+
+    const item = await storage.updateItem(id, result.value)
+    return {
+      statusCode: 200,
+      body: Result.succeed(item),
+    }
+  } catch (error) {
+    console.error(`Error updating item ${id}:`, error)
+    throw error
   }
 }
