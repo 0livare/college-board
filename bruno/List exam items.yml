@@ -6,6 +6,13 @@ info:
 http:
   method: GET
   url: "{{appUrl}}/api/items"
+  body:
+    type: json
+    data: |-
+      {
+        "limit": 1,
+        "offset": 0
+      }
   auth: inherit
 
 settings:

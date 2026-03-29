@@ -9,14 +9,10 @@ import {
 
 const storage = createStorage()
 
-export async function createItemHandler(
-  data: CreateItemRequest,
-): Promise<LambdaResult> {
+export async function createItemHandler(data: unknown): Promise<LambdaResult> {
   try {
     const result = verifyZodSchema(createItemSchema, data)
-    if (Result.isFailure(result)) {
-      return { statusCode: 400, body: result }
-    }
+    if (Result.isFailure(result)) return { statusCode: 400, body: result }
 
     const item = await storage.createItem(result.value)
     return {
