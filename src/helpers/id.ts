@@ -14,9 +14,9 @@ export function genId<T extends IdTypes>(
 
 type IdTypes = keyof typeof prefixes
 const prefixes = {
-  examItem: 'i',
+  examItem: 'q',
   // version: 'v',
 } as const
 
-export type ExamItemId = TypeId<'i'>
+export type ExamItemId = TypeId<'q'>
 // export type VersionId = TypeId<'v'>

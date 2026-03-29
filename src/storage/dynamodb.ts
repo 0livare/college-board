@@ -29,7 +29,7 @@ import {
   CreateItemRequest,
   UpdateItemRequest,
   ListItemsQuery,
-} from '../types/exam-item-types.js'
+} from '../types/index.js'
 import { ItemStorage } from './interface.js'
 import { type ExamItemId, genId } from '../helpers/id.js'
 

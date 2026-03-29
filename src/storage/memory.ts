@@ -10,7 +10,7 @@ import {
   CreateItemRequest,
   UpdateItemRequest,
   ListItemsQuery,
-} from '../types/exam-item-types.js'
+} from '../types/index.js'
 import { ItemStorage } from './interface.js'
 import { genId, ExamItemId } from '../helpers/id.js'
 
