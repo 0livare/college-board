@@ -58,7 +58,7 @@ export class DynamoDBStorage implements ItemStorage {
         ...data.metadata,
         created: now,
         lastModified: now,
-        version: 1,
+        version: genId('version'),
       },
     }
 
@@ -100,7 +100,7 @@ export class DynamoDBStorage implements ItemStorage {
         ...existing.metadata,
         ...(data.metadata || {}),
         lastModified: Date.now(),
-        version: existing.metadata.version + 1,
+        version: genId('version'),
       },
     }
 

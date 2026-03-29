@@ -1,5 +1,9 @@
 import { z } from 'zod'
-import { examItemIdSchema, type ExamItemId } from '../helpers/id'
+import {
+  examItemIdSchema,
+  versionIdSchema,
+  type ExamItemId,
+} from '../helpers/id'
 
 ///////////////////////
 //
@@ -97,7 +101,14 @@ export const examItemSchema = z.object({
     created: z.number(),
     /** Unix timestamp in milliseconds */
     lastModified: z.number(),
-    version: z.number(),
+    // ⚠️ I have changed version from a number to a typeid which are
+    // lexicographically sortable by creation time.
+    // While a single incrementing integer is very easy to understand,
+    // it becomes a problem when used as a Dynamo DB sort key because
+    // in order for the integer to be lexicographically sortable, it has
+    // to be zero-padded to a fixed length and you would have to choose
+    // that length upfront.
+    version: versionIdSchema,
   }),
 })
 export type ExamItem = z.infer<typeof examItemSchema>

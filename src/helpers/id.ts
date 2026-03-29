@@ -8,11 +8,13 @@ import { z } from 'zod'
 type IdTypes = keyof typeof prefixes
 const prefixes = {
   examItem: 'q',
-  // version: 'v',
+  version: 'v',
 } as const
 
 export const examItemIdSchema = typeIdZodSchema(prefixes.examItem)
 export type ExamItemId = z.infer<typeof examItemIdSchema>
+export const versionIdSchema = typeIdZodSchema(prefixes.version)
+export type VersionId = z.infer<typeof versionIdSchema>
 
 //
 // Zod helper
