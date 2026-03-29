@@ -1,9 +1,5 @@
 import { z } from 'zod'
-import {
-  examItemIdSchema,
-  versionIdSchema,
-  type ExamItemId,
-} from '../helpers/id'
+import { examItemIdSchema, versionIdSchema } from '../helpers/id'
 
 ///////////////////////
 //
