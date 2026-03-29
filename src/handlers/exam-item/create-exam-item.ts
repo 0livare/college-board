@@ -15,8 +15,8 @@ export async function createItemHandler(data: unknown): Promise<LambdaResult> {
       statusCode: 201,
       body: Result.succeed(item),
     }
-  } catch (error) {
-    console.error('Error creating item:', error)
-    throw error
+  } catch (err) {
+    console.error({ err, msg: 'Error creating item' })
+    throw err
   }
 }

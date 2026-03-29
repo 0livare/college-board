@@ -3,7 +3,8 @@ import { Result } from '@praha/byethrow'
 
 export function checkZodSchema<T>(schema: z.ZodType<T>, data: unknown) {
   const parsed = schema.safeParse(data)
-  return parsed.success
-    ? Result.succeed(parsed.data)
-    : Result.fail(parsed.error.issues)
+  if (parsed.success) return Result.succeed(parsed.data)
+
+  console.error({ err: parsed.error, msg: 'Zod schema validation failed' })
+  return Result.fail(parsed.error.issues)
 }

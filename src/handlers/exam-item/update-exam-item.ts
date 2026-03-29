@@ -19,8 +19,8 @@ export async function updateItemHandler(
       statusCode: 200,
       body: Result.succeed(item),
     }
-  } catch (error) {
-    console.error(`Error updating item ${id}:`, error)
-    throw error
+  } catch (err) {
+    console.error({ err, msg: 'Error updating item', itemId: id })
+    throw err
   }
 }

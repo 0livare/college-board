@@ -12,8 +12,8 @@ export async function getItemHandler(id: ExamItemId) {
     }
 
     return { statusCode: 200, body: Result.succeed(item) }
-  } catch (error) {
-    console.error('Error getting item:', error)
+  } catch (err) {
+    console.error({ err, msg: 'Error getting item', itemId: id })
     return {
       statusCode: 500,
       body: Result.fail('Internal server error'),
