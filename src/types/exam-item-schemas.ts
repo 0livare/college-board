@@ -1,14 +1,11 @@
 import { z } from 'zod'
-import type { ExamItemId } from '../helpers/id'
+import { examItemIdSchema, type ExamItemId } from '../helpers/id'
 
 ///////////////////////
 //
 // Lower-level schemas related to the exam items.
 //
 ///////////////////////
-
-/** Unix timestamp in milliseconds */
-type Timestamp = number
 
 export const difficultySchema = z.union([
   z.literal(1),
@@ -94,10 +91,12 @@ export type ListItemsQuery = z.infer<typeof listItemsQuerySchema>
 
 export const examItemSchema = z.object({
   ...createItemSchema.shape,
-  id: z.string().brand<ExamItemId>(),
+  id: examItemIdSchema,
   metadata: createMetadataSchema.extend({
-    created: z.number().brand<Timestamp>(),
-    lastModified: z.number().brand<Timestamp>(),
+    /** Unix timestamp in milliseconds */
+    created: z.number(),
+    /** Unix timestamp in milliseconds */
+    lastModified: z.number(),
     version: z.number(),
   }),
 })
