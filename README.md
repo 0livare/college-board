@@ -7,12 +7,14 @@ pnpm i
 pnpm dev
 ```
 
+Download the [Bruno API Client][bruno], open the documented requests in the `/bruno` directory, change the environment to `local` and run the requests to hit the local server.
+
 ## Noteworthy project attributes
 
 - The [ARCHITECTURE.excalidraw](ARCHITECTURE.excalidraw) file has a visual representation of the system architecture.
   - You can open this file with https://excalidraw.com.
 - Infrastructure as code is in the `/infrastructure` directory, implemented with AWS CDK.
-- Requests for the [Bruno API Client](https://www.usebruno.com) (it's like postman but [better](https://www.olivare.net/blog/2025/bruno)) live in `/bruno`.
+- Requests for the [Bruno API Client][bruno] (it's like postman but [better](https://www.olivare.net/blog/2025/bruno)) live in `/bruno`.
 - Zod schemas and derived types are in `/src/types/exam-item-schemas.ts`.
   - All fields are strongly typed, including question type variations
   - Schemas extend one another to avoid duplication
@@ -32,3 +34,5 @@ pnpm dev
   - For example we could base-64 encode the `LastEvaluatedKey` and have the user pass it back for subsequent calls
 - Manually test the DynamoDBStorage implementation with either a local or deployed DynamoDB
 - Add audit-trail entries to the DynamoDBStorage implementation for create/update/delete operations
+
+[bruno]: https://www.usebruno.com

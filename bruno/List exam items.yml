@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "limit": 1,
+        "limit": 10,
         "offset": 0
       }
   auth: inherit
