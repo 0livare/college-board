@@ -83,8 +83,8 @@ export class MemoryStorage implements ItemStorage {
     }
 
     // Filter by status
-    if (query.status) {
-      items = items.filter((item) => item.metadata.status === query.status)
+    if (query.itemStatus) {
+      items = items.filter((item) => item.metadata.status === query.itemStatus)
     }
 
     const total = items.length
