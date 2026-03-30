@@ -6,17 +6,9 @@
  */
 
 import { createServer, IncomingMessage, ServerResponse } from 'http'
-import {
-  getItemHandler,
-  createItemHandler,
-  listItemsHandler,
-  updateItemHandler,
-  getAuditTrailHandler,
-  versionItemHandler,
-} from './handlers/exam-item/index.js'
-import { LambdaResult } from './types/index.js'
 import { Result } from '@praha/byethrow'
 import { ExamItemId } from './helpers/id.js'
+import { handler as lambdaHandler } from './lambda-handler.js'
 
 const PORT = process.env.PORT || 3000
 
@@ -54,40 +46,28 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
   }
 
   try {
-    let result: LambdaResult = {
-      statusCode: 404,
-      body: Result.fail('Route not found'),
-    }
+    const match = url?.match(/^\/api\/items\/([^/]+)/)
+    const id = match ? (match[1] as ExamItemId) : undefined
 
-    if (url?.match(/^\/api\/items\/?$/)) {
-      if (method === 'GET') {
-        result = await listItemsHandler(parsedBody)
-      } else if (method === 'POST') {
-        result = await createItemHandler(parsedBody)
-      }
-    } else {
-      const match = url?.match(/^\/api\/items\/([^/]+)/)
-      const id = match ? (match[1] as ExamItemId) : null
+    let result = await lambdaHandler({
+      path: url || '/',
+      httpMethod: method || 'GET',
+      body: body || null,
+      pathParameters: { id },
 
-      if (url?.endsWith('/audit')) {
-        if (method === 'GET' && id) {
-          result = await getAuditTrailHandler(id)
-        }
-      } else if (url?.endsWith('/versions')) {
-        if (method === 'POST' && id) {
-          result = await versionItemHandler(id)
-        }
-      } else if (id) {
-        if (method === 'GET') {
-          result = await getItemHandler(id)
-        } else if (method === 'PATCH') {
-          result = await updateItemHandler(id, parsedBody)
-        }
-      }
-    }
+      // Fields unused by lambda-handler but required by the type signature
+      headers: {},
+      multiValueHeaders: {},
+      queryStringParameters: null,
+      multiValueQueryStringParameters: null,
+      isBase64Encoded: false,
+      requestContext: {} as any,
+      resource: '',
+      stageVariables: null,
+    })
 
     res.writeHead(result.statusCode, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify(result.body))
+    res.end(result.body)
   } catch (error) {
     console.error('Server error:', error)
     res.writeHead(500, { 'Content-Type': 'application/json' })

@@ -11,11 +11,12 @@ pnpm dev
 
 - The [ARCHITECTURE.excalidraw](ARCHITECTURE.excalidraw) file has a visual representation of the system architecture.
   - You can open this file with https://excalidraw.com.
+- Infrastructure as code is in the `/infrastructure` directory, implemented with AWS CDK.
 - Requests for the [Bruno API Client](https://www.usebruno.com) (it's like postman but [better](https://www.olivare.net/blog/2025/bruno)) live in `/bruno`.
-- Zod schemas and derived types are in `src/types/exam-item-schemas.ts`.
+- Zod schemas and derived types are in `/src/types/exam-item-schemas.ts`.
   - All fields are strongly typed, including question type variations
   - Schemas extend one another to avoid duplication
-- All Ids are [TypeIDs](https://www.olivare.net/blog/2025/dx-of-ids#typeid). See `src/helpers/id.ts`. TypeIDs are:
+- All Ids are [TypeIDs](https://www.olivare.net/blog/2025/dx-of-ids#typeid). See `/src/helpers/id.ts`. TypeIDs are:
   - Strongly typed
   - Globally unique
   - Lexicographically sortable
