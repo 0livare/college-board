@@ -2,6 +2,7 @@ import { Result } from '@praha/byethrow'
 import { checkZodSchema } from '../../helpers/verify-zod-schema.js'
 import { createStorage } from '../../storage/index.js'
 import { createItemSchema, LambdaResult } from '../../types/index.js'
+import { unknownErrorResponse } from '../../helpers/unknown-error-response.js'
 
 const storage = createStorage()
 
@@ -17,6 +18,6 @@ export async function createItemHandler(data: unknown): Promise<LambdaResult> {
     }
   } catch (err) {
     console.error({ err, msg: 'Error creating item' })
-    throw err
+    return unknownErrorResponse()
   }
 }

@@ -3,6 +3,7 @@ import { createStorage } from '../../storage/index.js'
 import { LambdaResult, updateItemSchema } from '../../types/index.js'
 import { ExamItemId } from '../../helpers/id.js'
 import { checkZodSchema } from '../../helpers/verify-zod-schema.js'
+import { unknownErrorResponse } from '../../helpers/unknown-error-response.js'
 
 const storage = createStorage()
 
@@ -15,12 +16,11 @@ export async function updateItemHandler(
     if (Result.isFailure(result)) return { statusCode: 400, body: result }
 
     const item = await storage.updateItem(id, result.value)
-    return {
-      statusCode: 200,
-      body: Result.succeed(item),
-    }
+    if (!item) return { statusCode: 404, body: Result.fail('Item not found') }
+
+    return { statusCode: 200, body: Result.succeed(item) }
   } catch (err) {
     console.error({ err, msg: 'Error updating item', itemId: id })
-    throw err
+    return unknownErrorResponse()
   }
 }

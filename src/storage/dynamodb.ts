@@ -128,7 +128,6 @@ export class DynamoDBStorage implements ItemStorage {
         ...existing.metadata,
         ...(data.metadata || {}),
         lastModified: Date.now(),
-        version: genId('version'),
       },
     }
 
@@ -154,7 +153,9 @@ export class DynamoDBStorage implements ItemStorage {
     query: ListItemsQuery,
   ): Promise<{ items: ExamItem[]; total: number }> {
     const filterParts: string[] = []
-    const expressionValues: Record<string, unknown> = { ':gsi1pk': GSI1PK_VALUE }
+    const expressionValues: Record<string, unknown> = {
+      ':gsi1pk': GSI1PK_VALUE,
+    }
 
     if (query.subject) {
       filterParts.push('subject = :subject')

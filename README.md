@@ -34,5 +34,9 @@ Download the [Bruno API Client][bruno], open the documented requests in the `/br
   - For example we could base-64 encode the `LastEvaluatedKey` and have the user pass it back for subsequent calls
 - Manually test the DynamoDBStorage implementation with either a local or deployed DynamoDB
 - Add audit-trail entries to the DynamoDBStorage implementation for create/update/delete operations
+- Further consider the relationship between versions and audits
+  - Currently the in-memory and dynamo db implementations work differently
+  - The in-memory implementation creates a new version on every update, but the DynamoDB implementation only creates a new version when create version is explicitly called.
+  - I went this direction because it seemed to be what the prompt was asking for given the supplied endpoints, but if dynamo were changed to just create a new version for every update, the need for separate audit db entries would mostly go away
 
 [bruno]: https://www.usebruno.com

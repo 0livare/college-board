@@ -1,6 +1,7 @@
 import { Result } from '@praha/byethrow'
 import type { ExamItemId } from '../../helpers/id.js'
 import { createStorage } from '../../storage/index.js'
+import { unknownErrorResponse } from '../../helpers/unknown-error-response.js'
 
 const storage = createStorage()
 
@@ -14,9 +15,6 @@ export async function getItemHandler(id: ExamItemId) {
     return { statusCode: 200, body: Result.succeed(item) }
   } catch (err) {
     console.error({ err, msg: 'Error getting item', itemId: id })
-    return {
-      statusCode: 500,
-      body: Result.fail('Internal server error'),
-    }
+    return unknownErrorResponse()
   }
 }
