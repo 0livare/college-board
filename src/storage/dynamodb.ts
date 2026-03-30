@@ -32,10 +32,10 @@ import { type ExamItemId, genId, type VersionId } from '../helpers/id.js'
 
 // Single-table key helpers
 //
-//   Current item:     pk = ITEM#<id>   sk = CURRENT
-//   Version snapshot: pk = ITEM#<id>   sk = VERSION#<versionId>
+//   Current item:     PK = ITEM#<id>   SK = CURRENT
+//   Version snapshot: PK = ITEM#<id>   SK = VERSION#<versionId>
 //
-// Only current-item records carry `itemType` and `id`, making the
+// Only current-item records carry GSI1PK and GSI1SK, making the
 // ListItemsIndex GSI a sparse index (version records are excluded).
 function itemIdToPk(id: ExamItemId) {
   return `ITEM#${id}`
@@ -46,11 +46,11 @@ function versionIdToSk(versionId: VersionId) {
 
 const CURRENT = 'CURRENT'
 const LIST_ITEMS_INDEX = 'ListItemsIndex'
-const ITEM_TYPE = 'ITEM'
+const GSI1PK_VALUE = 'ITEM' // fixed value written on all current-item records
 
 // Strip table-internal keys before returning an ExamItem to callers
 function toExamItem(record: Record<string, unknown>): ExamItem {
-  const { pk: _pk, sk: _sk, itemType: _itemType, ...item } = record
+  const { PK: _PK, SK: _SK, GSI1PK: _gsi1pk, GSI1SK: _gsi1sk, ...item } = record
   return item as ExamItem
 }
 
@@ -87,9 +87,10 @@ export class DynamoDBStorage implements ItemStorage {
       new PutCommand({
         TableName: this.tableName,
         Item: {
-          pk: itemIdToPk(item.id),
-          sk: CURRENT,
-          itemType: ITEM_TYPE, // GSI partition key — present only on current items
+          PK: itemIdToPk(item.id),
+          SK: CURRENT,
+          GSI1PK: GSI1PK_VALUE, // sparse GSI — present only on current-item records
+          GSI1SK: item.id,
           ...item,
         },
       }),
@@ -102,7 +103,7 @@ export class DynamoDBStorage implements ItemStorage {
     const result = await this.client.send(
       new GetCommand({
         TableName: this.tableName,
-        Key: { pk: itemIdToPk(id), sk: CURRENT },
+        Key: { PK: itemIdToPk(id), SK: CURRENT },
       }),
     )
 
@@ -135,9 +136,10 @@ export class DynamoDBStorage implements ItemStorage {
       new PutCommand({
         TableName: this.tableName,
         Item: {
-          pk: itemIdToPk(updated.id),
-          sk: CURRENT,
-          itemType: ITEM_TYPE,
+          PK: itemIdToPk(updated.id),
+          SK: CURRENT,
+          GSI1PK: GSI1PK_VALUE,
+          GSI1SK: updated.id,
           ...updated,
         },
       }),
@@ -152,7 +154,7 @@ export class DynamoDBStorage implements ItemStorage {
     query: ListItemsQuery,
   ): Promise<{ items: ExamItem[]; total: number }> {
     const filterParts: string[] = []
-    const expressionValues: Record<string, unknown> = { ':itemType': ITEM_TYPE }
+    const expressionValues: Record<string, unknown> = { ':gsi1pk': GSI1PK_VALUE }
 
     if (query.subject) {
       filterParts.push('subject = :subject')
@@ -169,7 +171,7 @@ export class DynamoDBStorage implements ItemStorage {
       new QueryCommand({
         TableName: this.tableName,
         IndexName: LIST_ITEMS_INDEX,
-        KeyConditionExpression: 'itemType = :itemType',
+        KeyConditionExpression: 'GSI1PK = :gsi1pk',
         FilterExpression: filterExpression,
         ExpressionAttributeValues: expressionValues,
         Limit: query.limit ?? 10,
@@ -188,8 +190,8 @@ export class DynamoDBStorage implements ItemStorage {
       new PutCommand({
         TableName: this.tableName,
         Item: {
-          pk: itemIdToPk(id),
-          sk: versionIdToSk(genId('version')),
+          PK: itemIdToPk(id),
+          SK: versionIdToSk(genId('version')),
           ...current,
         },
       }),
@@ -202,10 +204,10 @@ export class DynamoDBStorage implements ItemStorage {
     const result = await this.client.send(
       new QueryCommand({
         TableName: this.tableName,
-        KeyConditionExpression: 'pk = :pk AND begins_with(sk, :prefix)',
+        KeyConditionExpression: 'PK = :PK AND begins_with(SK, :prefix)',
         ExpressionAttributeValues: {
           // TypeIDs are UUIDv7-based so lexicographic order == creation order.
-          ':pk': itemIdToPk(id),
+          ':PK': itemIdToPk(id),
           ':prefix': 'VERSION#',
         },
       }),

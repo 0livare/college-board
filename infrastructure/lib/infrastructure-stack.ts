@@ -24,8 +24,8 @@ export class InfrastructureStack extends cdk.Stack {
 
     const table = new dynamodb.Table(this, 'ExamItemsTable', {
       tableName: 'exam-items',
-      partitionKey: { name: 'pk', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'sk', type: dynamodb.AttributeType.STRING },
+      partitionKey: { name: 'PK', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'SK', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
       encryption: dynamodb.TableEncryption.AWS_MANAGED,
@@ -33,11 +33,11 @@ export class InfrastructureStack extends cdk.Stack {
     })
 
     // Sparse GSI for list queries: only current-item records include
-    // itemType="ITEM" and id, so only those records appear in the index.
+    // GSI1PK="ITEM" and GSI1SK=<id>, so only those records appear in the index.
     table.addGlobalSecondaryIndex({
       indexName: 'ListItemsIndex',
-      partitionKey: { name: 'itemType', type: dynamodb.AttributeType.STRING },
-      sortKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      partitionKey: { name: 'GSI1PK', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'GSI1SK', type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL,
     })
 
