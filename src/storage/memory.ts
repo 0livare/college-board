@@ -97,27 +97,12 @@ export class MemoryStorage implements ItemStorage {
     return { items, total }
   }
 
+  // ⚠️ The previous implementation of this did exactly the same thing as udpdateItem,
+  // so I made that explicit here.
+  // See "Further consider the relationship between versions and audits"
+  // in the README for more discussion on this.
   async createVersion(id: ExamItemId): Promise<ExamItem | null> {
-    const item = this.items.get(id)
-    if (!item) return null
-
-    // Create a new version (copy of current state)
-    const newVersion: ExamItem = {
-      ...item,
-      metadata: {
-        ...item.metadata,
-        version: genId('version'),
-        lastModified: Date.now(),
-      },
-    }
-
-    this.items.set(id, newVersion)
-
-    const history = this.versions.get(id) || []
-    history.push({ ...newVersion })
-    this.versions.set(id, history)
-
-    return newVersion
+    return this.updateItem(id, {})
   }
 
   async getAuditTrail(id: ExamItemId): Promise<ExamItem[]> {
