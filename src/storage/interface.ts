@@ -5,20 +5,21 @@
  * Implement this interface for different storage backends (in-memory, DynamoDB, etc.)
  */
 
-import {
+import type { ExamItemId } from '../helpers/id.js'
+import type {
   ExamItem,
   CreateItemRequest,
   UpdateItemRequest,
   ListItemsQuery,
-} from '../types/item.js'
+} from '../types/exam-item-schemas.js'
 
 export interface ItemStorage {
   createItem(data: CreateItemRequest): Promise<ExamItem>
-  getItem(id: string): Promise<ExamItem | null>
-  updateItem(id: string, data: UpdateItemRequest): Promise<ExamItem | null>
+  getItem(id: ExamItemId): Promise<ExamItem | null>
+  updateItem(id: ExamItemId, data: UpdateItemRequest): Promise<ExamItem | null>
   listItems(
     query: ListItemsQuery,
   ): Promise<{ items: ExamItem[]; total: number }>
-  createVersion(id: string): Promise<ExamItem | null>
-  getAuditTrail(id: string): Promise<ExamItem[]>
+  createVersion(id: ExamItemId): Promise<ExamItem | null>
+  getAuditTrail(id: ExamItemId): Promise<ExamItem[]>
 }

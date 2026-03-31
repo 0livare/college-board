@@ -5,29 +5,29 @@
  * Data is lost when the server restarts.
  */
 
-import { randomUUID } from 'crypto'
 import {
   ExamItem,
   CreateItemRequest,
   UpdateItemRequest,
   ListItemsQuery,
-} from '../types/item.js'
+} from '../types/index.js'
 import { ItemStorage } from './interface.js'
+import { genId, ExamItemId } from '../helpers/id.js'
 
 export class MemoryStorage implements ItemStorage {
-  private items: Map<string, ExamItem> = new Map()
-  private versions: Map<string, ExamItem[]> = new Map()
+  private items: Map<ExamItemId, ExamItem> = new Map()
+  private versions: Map<ExamItemId, ExamItem[]> = new Map()
 
   async createItem(data: CreateItemRequest): Promise<ExamItem> {
     const now = Date.now()
     const item: ExamItem = {
-      id: randomUUID(),
+      id: genId('examItem'),
       ...data,
       metadata: {
         ...data.metadata,
         created: now,
         lastModified: now,
-        version: 1,
+        version: genId('version'),
       },
     }
 
@@ -37,12 +37,12 @@ export class MemoryStorage implements ItemStorage {
     return item
   }
 
-  async getItem(id: string): Promise<ExamItem | null> {
+  async getItem(id: ExamItemId): Promise<ExamItem | null> {
     return this.items.get(id) || null
   }
 
   async updateItem(
-    id: string,
+    id: ExamItemId,
     data: UpdateItemRequest,
   ): Promise<ExamItem | null> {
     const item = this.items.get(id)
@@ -58,7 +58,7 @@ export class MemoryStorage implements ItemStorage {
         ...item.metadata,
         ...(data.metadata || {}),
         lastModified: Date.now(),
-        version: item.metadata.version + 1,
+        version: genId('version'),
       },
     }
 
@@ -83,8 +83,8 @@ export class MemoryStorage implements ItemStorage {
     }
 
     // Filter by status
-    if (query.status) {
-      items = items.filter((item) => item.metadata.status === query.status)
+    if (query.itemStatus) {
+      items = items.filter((item) => item.metadata.status === query.itemStatus)
     }
 
     const total = items.length
@@ -97,30 +97,15 @@ export class MemoryStorage implements ItemStorage {
     return { items, total }
   }
 
-  async createVersion(id: string): Promise<ExamItem | null> {
-    const item = this.items.get(id)
-    if (!item) return null
-
-    // Create a new version (copy of current state)
-    const newVersion: ExamItem = {
-      ...item,
-      metadata: {
-        ...item.metadata,
-        version: item.metadata.version + 1,
-        lastModified: Date.now(),
-      },
-    }
-
-    this.items.set(id, newVersion)
-
-    const history = this.versions.get(id) || []
-    history.push({ ...newVersion })
-    this.versions.set(id, history)
-
-    return newVersion
+  // ⚠️ The previous implementation of this did exactly the same thing as udpdateItem,
+  // so I made that explicit here.
+  // See "Further consider the relationship between versions and audits"
+  // in the README for more discussion on this.
+  async createVersion(id: ExamItemId): Promise<ExamItem | null> {
+    return this.updateItem(id, {})
   }
 
-  async getAuditTrail(id: string): Promise<ExamItem[]> {
+  async getAuditTrail(id: ExamItemId): Promise<ExamItem[]> {
     return this.versions.get(id) || []
   }
 }

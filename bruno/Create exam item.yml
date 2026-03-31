@@ -1,0 +1,51 @@
+info:
+  name: Create exam item
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{appUrl}}/api/items"
+  body:
+    type: json
+    data: |-
+      {
+        "subject": "AP European History",
+        "difficulty": 1,
+        "content": {
+          "type": "multiple-choice",
+          "question": "Who wrote 'The Prince' in 1532?",
+          "options": [
+            "Niccolò Machiavelli",
+            "Napoleon Bonaparte",
+            "Leonardo da Vinci",
+            "Galileo Galilei"
+          ],
+          "correctAnswer": "Niccolò Machiavelli",
+          "explanation": "Machiavelli wrote 'The Prince' (Il Principe), published in 1532. It's a political treatise advising rulers on how to acquire and maintain power."
+        },
+        "metadata": {
+          "author": "test-author",
+          "status": "draft",
+          "tags": [
+            "european-history",
+            "political-theory"
+          ]
+        },
+        "securityLevel": "standard"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.body.type === 'Success') {
+          bru.setVar("examItemId", res.body.value.id);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

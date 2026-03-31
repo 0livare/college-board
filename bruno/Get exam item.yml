@@ -1,0 +1,15 @@
+info:
+  name: Get exam item
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{appUrl}}/api/items/{{examItemId}}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

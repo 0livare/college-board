@@ -6,21 +6,30 @@
  */
 
 import { createServer, IncomingMessage, ServerResponse } from 'http'
-import { getItemHandler, createItemHandler } from './handlers/example.js'
+import { Result } from '@praha/byethrow'
+import { ExamItemId } from './helpers/id.js'
+import { handler as lambdaHandler } from './lambda-handler.js'
 
 const PORT = process.env.PORT || 3000
 
 async function handleRequest(req: IncomingMessage, res: ServerResponse) {
   const { method, url } = req
+  console.info(`${method} ${url}`)
 
   // Parse request body
   let body = ''
   req.on('data', (chunk) => (body += chunk))
   await new Promise((resolve) => req.on('end', resolve))
 
-  const parsedBody = body ? JSON.parse(body) : null
-
-  console.log(`${method} ${url}`)
+  let parsedBody
+  try {
+    parsedBody = body ? JSON.parse(body) : null
+  } catch (error) {
+    console.error('Error parsing JSON body:', error)
+    res.writeHead(400, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify(Result.fail('Invalid JSON body')))
+    return
+  }
 
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -37,38 +46,45 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
   }
 
   try {
-    let result
+    const match = url?.match(/^\/api\/items\/([^/]+)/)
+    const id = match ? (match[1] as ExamItemId) : undefined
 
-    // Example routes - implement your own routing logic
-    if (method === 'GET' && url === '/api/items/test') {
-      result = await getItemHandler('test')
-    } else if (method === 'POST' && url === '/api/items') {
-      result = await createItemHandler(parsedBody)
-    } else if (method === 'GET' && url?.startsWith('/api/items/')) {
-      const id = url.split('/').pop()
-      result = await getItemHandler(id!)
-    } else {
-      result = {
-        statusCode: 404,
-        body: { error: 'Route not found' },
-      }
-    }
+    let result = await lambdaHandler({
+      path: url || '/',
+      httpMethod: method || 'GET',
+      body: body || null,
+      pathParameters: { id },
+
+      // Fields unused by lambda-handler but required by the type signature
+      headers: {},
+      multiValueHeaders: {},
+      queryStringParameters: null,
+      multiValueQueryStringParameters: null,
+      isBase64Encoded: false,
+      requestContext: {} as any,
+      resource: '',
+      stageVariables: null,
+    })
 
     res.writeHead(result.statusCode, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify(result.body))
+    res.end(result.body)
   } catch (error) {
     console.error('Server error:', error)
     res.writeHead(500, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ error: 'Internal server error' }))
+    res.end(JSON.stringify(Result.fail('Internal server error')))
   }
 }
 
 const server = createServer(handleRequest)
 
 server.listen(PORT, () => {
-  console.log(`\n🚀 Server running at http://localhost:${PORT}`)
-  console.log(`\nExample endpoints:`)
-  console.log(`  POST   http://localhost:${PORT}/api/items`)
-  console.log(`  GET    http://localhost:${PORT}/api/items/:id`)
-  console.log(`\nPress Ctrl+C to stop\n`)
+  console.info(`\n🚀 Server running at http://localhost:${PORT}`)
+  console.info(`\nExample endpoints:`)
+  console.info(`  GET    http://localhost:${PORT}/api/items`)
+  console.info(`  POST   http://localhost:${PORT}/api/items`)
+  console.info(`  GET    http://localhost:${PORT}/api/items/:id`)
+  console.info(`  PATCH  http://localhost:${PORT}/api/items/:id`)
+  console.info(`  GET    http://localhost:${PORT}/api/items/:id/audit`)
+  console.info(`  POST   http://localhost:${PORT}/api/items/:id/versions`)
+  console.info(`\nPress Ctrl+C to stop\n`)
 })

@@ -19,18 +19,40 @@ import {
   DynamoDBDocumentClient,
   PutCommand,
   GetCommand,
-  UpdateCommand,
-  ScanCommand,
   QueryCommand,
 } from '@aws-sdk/lib-dynamodb'
-import { randomUUID } from 'crypto'
 import {
   ExamItem,
   CreateItemRequest,
   UpdateItemRequest,
   ListItemsQuery,
-} from '../types/item.js'
+} from '../types/index.js'
 import { ItemStorage } from './interface.js'
+import { type ExamItemId, genId, type VersionId } from '../helpers/id.js'
+
+// Single-table key helpers
+//
+//   Current item:     PK = ITEM#<id>   SK = CURRENT
+//   Version snapshot: PK = ITEM#<id>   SK = VERSION#<versionId>
+//
+// Only current-item records carry GSI1PK and GSI1SK, making the
+// ListItemsIndex GSI a sparse index (version records are excluded).
+function itemIdToPk(id: ExamItemId) {
+  return `ITEM#${id}`
+}
+function versionIdToSk(versionId: VersionId) {
+  return `VERSION#${versionId}`
+}
+
+const CURRENT = 'CURRENT'
+const LIST_ITEMS_INDEX = 'ListItemsIndex'
+const GSI1PK_VALUE = 'ITEM' // fixed value written on all current-item records
+
+// Strip table-internal keys before returning an ExamItem to callers
+function toExamItem(record: Record<string, unknown>): ExamItem {
+  const { PK: _PK, SK: _SK, GSI1PK: _gsi1pk, GSI1SK: _gsi1sk, ...item } = record
+  return item as ExamItem
+}
 
 export class DynamoDBStorage implements ItemStorage {
   private client: DynamoDBDocumentClient
@@ -51,39 +73,46 @@ export class DynamoDBStorage implements ItemStorage {
   async createItem(data: CreateItemRequest): Promise<ExamItem> {
     const now = Date.now()
     const item: ExamItem = {
-      id: randomUUID(),
+      id: genId('examItem'),
       ...data,
       metadata: {
         ...data.metadata,
         created: now,
         lastModified: now,
-        version: 1,
+        version: genId('version'),
       },
     }
 
     await this.client.send(
       new PutCommand({
         TableName: this.tableName,
-        Item: item,
+        Item: {
+          PK: itemIdToPk(item.id),
+          SK: CURRENT,
+          GSI1PK: GSI1PK_VALUE, // sparse GSI — present only on current-item records
+          GSI1SK: item.id,
+          ...item,
+        },
       }),
     )
 
     return item
   }
 
-  async getItem(id: string): Promise<ExamItem | null> {
+  async getItem(id: ExamItemId): Promise<ExamItem | null> {
     const result = await this.client.send(
       new GetCommand({
         TableName: this.tableName,
-        Key: { id },
+        Key: { PK: itemIdToPk(id), SK: CURRENT },
       }),
     )
 
-    return (result.Item as ExamItem) || null
+    if (!result.Item) return null
+    return toExamItem(result.Item)
   }
 
   async updateItem(
-    id: string,
+    id: ExamItemId,
     data: UpdateItemRequest,
   ): Promise<ExamItem | null> {
     const existing = await this.getItem(id)
@@ -99,45 +128,94 @@ export class DynamoDBStorage implements ItemStorage {
         ...existing.metadata,
         ...(data.metadata || {}),
         lastModified: Date.now(),
-        version: existing.metadata.version + 1,
       },
     }
 
     await this.client.send(
       new PutCommand({
         TableName: this.tableName,
-        Item: updated,
+        Item: {
+          PK: itemIdToPk(updated.id),
+          SK: CURRENT,
+          GSI1PK: GSI1PK_VALUE,
+          GSI1SK: updated.id,
+          ...updated,
+        },
       }),
     )
 
     return updated
   }
 
+  // ⚠️ TODO: This implementation does not work with the currently defined limit/offset pagination.
+  // Dynamo uses cursor-based pagination and so ListItemsQuery must change to support this.
   async listItems(
     query: ListItemsQuery,
   ): Promise<{ items: ExamItem[]; total: number }> {
-    // Note: This is a basic implementation using Scan
-    // For production, you should use Query with appropriate indexes
+    const filterParts: string[] = []
+    const expressionValues: Record<string, unknown> = {
+      ':gsi1pk': GSI1PK_VALUE,
+    }
+
+    if (query.subject) {
+      filterParts.push('subject = :subject')
+      expressionValues[':subject'] = query.subject
+    }
+    if (query.itemStatus) {
+      filterParts.push('itemStatus = :itemStatus')
+      expressionValues[':itemStatus'] = query.itemStatus
+    }
+    const filterExpression =
+      filterParts.length > 0 ? filterParts.join(' AND ') : undefined
+
     const result = await this.client.send(
-      new ScanCommand({
+      new QueryCommand({
         TableName: this.tableName,
-        Limit: query.limit || 10,
+        IndexName: LIST_ITEMS_INDEX,
+        KeyConditionExpression: 'GSI1PK = :gsi1pk',
+        FilterExpression: filterExpression,
+        ExpressionAttributeValues: expressionValues,
+        Limit: query.limit ?? 10,
       }),
     )
 
-    const items = (result.Items || []) as ExamItem[]
-    return { items, total: result.Count || 0 }
+    const items = (result.Items ?? []).map((r) => toExamItem(r))
+    return { items, total: result.Count ?? 0 }
   }
 
-  async createVersion(id: string): Promise<ExamItem | null> {
-    // TODO: Implement versioning strategy
-    // Options: Separate versions table, same table with sort key, etc.
-    throw new Error('Not implemented - define your versioning strategy')
+  async createVersion(id: ExamItemId): Promise<ExamItem | null> {
+    const current = await this.getItem(id)
+    if (!current) return null
+
+    await this.client.send(
+      new PutCommand({
+        TableName: this.tableName,
+        Item: {
+          PK: itemIdToPk(id),
+          SK: versionIdToSk(genId('version')),
+          ...current,
+        },
+      }),
+    )
+
+    return current
   }
 
-  async getAuditTrail(id: string): Promise<ExamItem[]> {
-    // TODO: Implement audit trail retrieval
-    // This depends on your versioning strategy
-    throw new Error('Not implemented - define your audit trail strategy')
+  async getAuditTrail(id: ExamItemId): Promise<ExamItem[]> {
+    const result = await this.client.send(
+      new QueryCommand({
+        TableName: this.tableName,
+        KeyConditionExpression: 'PK = :PK AND begins_with(SK, :prefix)',
+        ExpressionAttributeValues: {
+          // TypeIDs are UUIDv7-based so lexicographic order == creation order.
+          ':PK': itemIdToPk(id),
+          ':prefix': 'VERSION#',
+        },
+      }),
+    )
+
+    return (result.Items ?? []).map((r) =>
+      toExamItem(r as Record<string, unknown>),
+    )
   }
 }
