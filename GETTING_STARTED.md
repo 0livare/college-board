@@ -127,13 +127,13 @@ export async function yourHandler(params: any) {
       body: {
         /* your data */
       },
-    };
+    }
   } catch (error) {
     // Handle errors appropriately
     return {
       statusCode: 500,
-      body: { error: "message" },
-    };
+      body: { error: 'message' },
+    }
   }
 }
 ```
@@ -159,7 +159,6 @@ Choose **either** CDK **or** Terraform and create infrastructure definitions.
    ```
 
 3. **Define resources in your CDK stack:**
-
    - Lambda functions (one per endpoint or shared)
    - API Gateway REST API
    - DynamoDB table (design the schema)
@@ -183,7 +182,6 @@ Choose **either** CDK **or** Terraform and create infrastructure definitions.
    ```
 
 2. **Define resources:**
-
    - AWS Lambda functions
    - API Gateway
    - DynamoDB table

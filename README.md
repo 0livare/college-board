@@ -121,8 +121,8 @@ Please fork this repository and submit your completed solution by sharing your f
 
 ### Include the following in your submission:
 
-- Instructions on how to run your solution locally  
+- Instructions on how to run your solution locally
 - Include a brief `ARCHITECTURE.md` describing your system’s structure and key components  
-Good luck! We're excited to see your solution.
+  Good luck! We're excited to see your solution.
 
 > See also the [Glossary](./GLOSSARY.md) for definitions of key terms used in this challenge.
