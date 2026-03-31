@@ -77,7 +77,7 @@ export class InfrastructureStack extends cdk.Stack {
     //
     // Single function handles all routes. The warm container reuses the
     // DynamoDB client across requests, reducing latency and connection overhead.
-    // The trade-off vs. per-route functions is noted in ARCHITECTURE.md.
+    // The trade-off vs. per-route functions is noted in ARCHITECTURE.excalidraw.
 
     const logGroup = new logs.LogGroup(this, 'ExamItemsLambdaLogs', {
       logGroupName: '/aws/lambda/exam-items-handler',
@@ -140,6 +140,7 @@ export class InfrastructureStack extends cdk.Stack {
     const lambdaIntegration = new apigateway.LambdaIntegration(handler)
 
     // Routes
+    // TODO: Create a utility for declaratively defining these routes for better readability
     const items = api.root.addResource('api').addResource('items')
     items.addMethod('GET', lambdaIntegration, defaultMethodOptions) // list items
     items.addMethod('POST', lambdaIntegration, defaultMethodOptions) // create item

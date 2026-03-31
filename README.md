@@ -27,16 +27,4 @@ Download the [Bruno API Client][bruno], open the documented requests in the `/br
 - Every endpoint exclusively returns [Results](https://www.olivare.net/blog/2025/ts-result#result--exception)
   - Any TypeScript client hitting this API can strongly type the fetch calls in such a way that checking errors becomes a compiler requirement
 
-## Remaining TODOs and future improvements
-
-- Add unit tests
-- Change the shape of `ListItemsQuery` to support Dynamo's cursor-based pagination
-  - For example we could base-64 encode the `LastEvaluatedKey` and have the user pass it back for subsequent calls
-- Manually test the DynamoDBStorage implementation with either a local or deployed DynamoDB
-- Add audit-trail entries to the DynamoDBStorage implementation for create/update/delete operations
-- Further consider the relationship between versions and audits
-  - Currently the in-memory and dynamo db implementations work differently
-  - The in-memory implementation creates a new version on every update, but the DynamoDB implementation only creates a new version when create version is explicitly called.
-  - I went this direction because it seemed to be what the prompt was asking for given the supplied endpoints, but if dynamo were changed to just create a new version for every update, the need for separate audit db entries would mostly go away
-
 [bruno]: https://www.usebruno.com
